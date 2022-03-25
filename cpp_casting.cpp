@@ -29,11 +29,11 @@ void compiler_provided()
   d2 = f1; /* implicit widening   */ SHOW(d2);
 
   // unwanted implicit conversion
-  int buffer['w']{}; // an array of 119 integers -- bug?
+  int buffer['z']{}; // an array of 122 integers -- bug?
   auto bufferDepth = sizeof(buffer)/sizeof(buffer[0]); SHOW(bufferDepth);
   SHOW(sizeof(buffer));
-  buffer['t'] = 123; //< compiler warns when not converted to int
-  SHOW(buffer[int('t')]); //< suppressed warning
+  buffer['z'] = 123; //< compiler emits error and warning!
+  SHOW(buffer[int('z')]); //< suppressed warning, but error still there
 
   int i;
   float Pi(3.14159); SHOW(Pi);
