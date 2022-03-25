@@ -1,4 +1,6 @@
-This directory contains code related to an article of the same name in the Doulos KnowHow section of the Doulos website. Doulos provides training on a variety of topics including C++.
+# CPP casting
+
+This directory contains code related to an article of the same title in the Doulos KnowHow section of the Doulos website. Doulos provides training on a variety of topics including C++.
 
 Written by David C Black, Senior Member Technical Staff at Doulos.<br/>
 
