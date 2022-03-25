@@ -13,7 +13,6 @@
 static_assert( __cplusplus >= 201703L, "Requires C++17" );
 #include <iostream>
 #include <string>
-#include <cstdint>
 #include <cmath>
 using namespace std::literals;
 
@@ -53,8 +52,12 @@ public:
   explicit Rect(double x) : Rect{x,0.0} {} // explicit constructor
   explicit Rect(const Polar& p); // explicit conversion
   explicit operator double() const { return m_x; } // explicit conversion
-  [[nodiscard]] std::string string() const { return "R{ "s + std::to_string(m_x) + ", "s + std::to_string(m_y) + " }"s; }
-  friend std::ostream& operator<<(std::ostream& os, const Rect& rhs) { os << rhs.string(); return os; }
+  [[nodiscard]] std::string string() const {
+    return "R{ "s + std::to_string(m_x) + ", "s + std::to_string(m_y) + " }"s;
+  }
+  friend std::ostream& operator<<(std::ostream& os, const Rect& rhs) {
+    return os << rhs.string();
+  }
   [[nodiscard]] double magnitude() const { return std::sqrt(m_x*m_x+m_y*m_y); }
   [[nodiscard]] double angle() const { return std::atan2(m_y,m_x); }
 private:
@@ -70,8 +73,12 @@ public:
   explicit operator double() const { return m_r; } // explicit conversion
   [[nodiscard]] double run() const { return m_r * std::sin(m_a); }
   [[nodiscard]] double rise() const { return m_r * std::cos(m_a); }
-  [[nodiscard]] std::string string() const { return "P{ "s + std::to_string(m_r) + ", "s + std::to_string(m_a) + " }"s; }
-  friend std::ostream& operator<<(std::ostream& os, Polar const& rhs) { os << rhs.string(); return os; }
+  [[nodiscard]] std::string string() const {
+    return "P{ "s + std::to_string(m_r) + ", "s + std::to_string(m_a) + " }"s;
+  }
+  friend std::ostream& operator<<(std::ostream& os, Polar const& rhs) {
+    return os << rhs.string();
+  }
 private:
   double m_r{}, m_a{};
 };
@@ -105,7 +112,7 @@ int main()
   int i{42}; SHOW(i);
   int *pInt{ &i }; SHOWPTR(pInt);
   short *pShort{nullptr};
-  pShort = (short*)&i; //< DANGEROUS cast - narrowing (endianess dependent)
+  pShort = (short*)&i; //< DANGEROUS cast - narrowing (endianness dependent)
 
   // Uses of cast
   pChar = const_cast<char*>(pcChar); //< DANGER: Assigning to *pChar is undefined behaviour
