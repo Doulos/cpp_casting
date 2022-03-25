@@ -1,12 +1,16 @@
 /*
+ * This code is from an article with the title **C++ Casting** found on the Doulos website under 
+ * the KnowHow section.
+ *
  * This C++ source illustrates the use of casting both Bad and Good. Be careful
  * not to infer these are recommended codings even though they do compile reasonably
  * well.
  *
- * We assume C++17, but only for a few features: [[nodiscard]]
+ * We assume C++17, but only for a few features: [[nodiscard]], and string
+ * literals (i.e., "Hello"s is equivalent to std::string{"Hello"})
  *
  */
-static_assert( __cplusplus >= 201703L );
+static_assert( __cplusplus >= 201703L, "Requires C++17" );
 #include <iostream>
 #include <string>
 #include <cstdint>
