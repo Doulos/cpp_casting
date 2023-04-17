@@ -16,8 +16,8 @@ static_assert( __cplusplus >= 201703L, "Requires C++17" );
 #include <cmath>
 using namespace std::literals;
 
-#define SHOW(var)    std::cout << __LINE__ << ": " << #var << " = " << (var) << '\n'
-#define SHOWPTR(ptr) std::cout << __LINE__ << ": " << #ptr << " = @";\
+#define SHOW_EXPRESSION(var) std::cout << __LINE__ << ": " << #var << " = " << (var) << '\n'
+#define SHOW_POINTER(ptr)    std::cout << __LINE__ << ": " << #ptr << " = @";\
   if( nullptr == (ptr)) std::cout << "nullptr\n";\
   else                  std::cout << ((void*)(ptr)) << '\n'
 
@@ -26,21 +26,23 @@ void compiler_provided()
   double d1 = 3.14159, d2;
   float  f1;
   int i1 = 42, i2;
-  d2 = i1; /* implicit conversion */ SHOW(d2);
-  f1 = d1; /* implicit narrowing  */ SHOW(f1);
-  i2 = d2; /* implicit conversion */ SHOW(i2);
-  d2 = f1; /* implicit widening   */ SHOW(d2);
+  d2 = i1; /* implicit conversion */ SHOW_EXPRESSION( d2);
+  f1 = d1; /* implicit narrowing  */ SHOW_EXPRESSION( f1);
+  i2 = d2; /* implicit conversion */ SHOW_EXPRESSION( i2);
+  d2 = f1; /* implicit widening   */ SHOW_EXPRESSION( d2);
 
   // unwanted implicit conversion
   int buffer['z']{}; // an array of 122 integers -- bug?
-  auto bufferDepth = sizeof(buffer)/sizeof(buffer[0]); SHOW(bufferDepth);
-  SHOW(sizeof(buffer));
+  auto bufferDepth = sizeof(buffer)/sizeof(buffer[0]); SHOW_EXPRESSION( bufferDepth);
+  SHOW_EXPRESSION( sizeof(buffer));
+#ifdef ENABLE_BUGS
   buffer['z'] = 123; //< compiler emits error and warning!
-  SHOW(buffer[int('z')]); //< suppressed warning, but error still there
+#endif
+  SHOW_EXPRESSION( buffer[int( 'z')]); //< suppressed warning, but error still there
 
   int i;
-  float Pi(3.14159); SHOW(Pi);
-  i = int(Pi); /* explicit conversion */ SHOW(i);
+  float Pi(3.14159); SHOW_EXPRESSION( Pi);
+  i = int(Pi); /* explicit conversion */ SHOW_EXPRESSION( i);
 
 }
 
@@ -87,15 +89,15 @@ Rect::Rect(const Polar& p) : Rect{ p.run(), p.rise() } {}
 
 void use_polar_rect()
 {
-  Rect  r0{};                 SHOW(r0);
-  Rect  r1{1.1};              SHOW(r1);
-  Rect  r2{2.1,2.2};          SHOW(r2);
+  Rect  r0{};                 SHOW_EXPRESSION( r0);
+  Rect  r1{1.1};              SHOW_EXPRESSION( r1);
+  Rect  r2{2.1,2.2};          SHOW_EXPRESSION( r2);
   Rect  r45{ 1.0, 1.0 };
-  Polar p0{};                 SHOW(p0);
-  Polar p1{1.2};              SHOW(p1);
-  Polar p2{1.2, r45.angle()}; SHOW(p2);
-  Polar p3{r2};               SHOW(p3);
-  Rect  r3{p2};               SHOW(r3);
+  Polar p0{};                 SHOW_EXPRESSION( p0);
+  Polar p1{1.2};              SHOW_EXPRESSION( p1);
+  Polar p2{1.2, r45.angle()}; SHOW_EXPRESSION( p2);
+  Polar p3{r2};               SHOW_EXPRESSION( p3);
+  Rect  r3{p2};               SHOW_EXPRESSION( r3);
 }
 
 int main()
@@ -104,19 +106,19 @@ int main()
   use_polar_rect();
 
   // C-style casting is dangerous
-  const char *pcChar = "HelloWorld"; SHOWPTR(&pcChar); SHOW(pcChar);
-  float *pFloat{nullptr}; SHOWPTR(pFloat);
-  char  *pChar{nullptr}; SHOWPTR(pChar);
+  const char *pcChar = "HelloWorld"; SHOW_POINTER( &pcChar); SHOW_EXPRESSION( pcChar);
+  float *pFloat{nullptr}; SHOW_POINTER( pFloat);
+  char  *pChar{nullptr}; SHOW_POINTER( pChar);
   pFloat = (float*)pcChar; //< DANGEROUS cast - do you really know the internal format of floats?
-  SHOW(pFloat);
-  int i{42}; SHOW(i);
-  int *pInt{ &i }; SHOWPTR(pInt);
+  SHOW_EXPRESSION( pFloat);
+  int i{42}; SHOW_EXPRESSION( i);
+  int *pInt{ &i }; SHOW_POINTER( pInt);
   short *pShort{nullptr};
   pShort = (short*)&i; //< DANGEROUS cast - narrowing (endianness dependent)
 
   // Uses of cast
   pChar = const_cast<char*>(pcChar); //< DANGER: Assigning to *pChar is undefined behaviour
-  // *pChar = 'h'; SHOW(pChar); // CRASH!!
+  // *pChar = 'h'; SHOW_EXPRESSION(pChar); // CRASH!!
 
   return 0;
 }
