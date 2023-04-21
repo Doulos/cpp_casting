@@ -1,4 +1,4 @@
-# CPP casting
+# cpp_casting - Guidelines for avoiding C++ casting issues
 
 This directory contains code related to an article of the same title in the Doulos KnowHow section of the Doulos website. Doulos provides training on a variety of topics including C++.
 
