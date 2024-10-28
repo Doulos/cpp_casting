@@ -20,7 +20,16 @@ include( project_defaults )
 
 set_target( cpp_casting )
 add_executable( "${Target}" )
-target_sources( "${Target}" PRIVATE cpp_casting.cpp )
+target_sources( "${Target}" PRIVATE
+  macros.hpp
+  webinar.cpp
+  cpp_casting.cpp
+)
+if(PROJECT_IS_TOP_LEVEL)
+  target_include_directories("${Target}" INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
+else()
+  target_include_directories("${Target}" SYSTEM INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
+endif()
 add_test( NAME test-"${Target}" COMMAND "${Target}" )
 
 # vim:syntax=cmake:nospell
