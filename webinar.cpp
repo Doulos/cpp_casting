@@ -17,7 +17,7 @@ using namespace std::literals;
   static std::discrete_distribution<int16_t> dist{normal};
   auto offset = dist(gen) - normal.size()/2;
   auto k = int16_t{3};
-  return static_cast<int16_t>(k * offset);
+  return gsl::narrow_cast<int16_t>((k * offset)&0x0FFFF);
 }
 
 struct Gps {
@@ -56,7 +56,7 @@ void slide7_1() { // `T(expr)` explicit conversion
   auto gps = Gps{};
   gps.write(magic); // lower 48 bits become three 16-bit fields (x,y,z)
   auto raw = gps.read_xyz(); // no casting required
-  auto real = double{float(static_cast<int64_t>(raw>>24))};
+  auto real = static_cast<double>(static_cast<int64_t>(raw>>24));
   auto scaled = numeric::fixed<16,16>{real}; //
   std::cout << "scaled=" << scaled << '\n';
 }
@@ -64,15 +64,17 @@ void slide7_1() { // `T(expr)` explicit conversion
 struct Base {
   Base() = default;
   explicit Base(int i):i{i}{}
-  virtual std::string kind() { return "Base"; }
-  int i{0};
+  explicit operator int() const { return i; }
+  virtual std::string to_string() { return "Base{i:"s + std::to_string(i) + '}'; }
+  virtual ~Base() = default;
+  protected: int i{0};
 };
 struct Derived : Base {
   Derived() = default;
-  explicit Derived(const Base& b):Base{b.i}{}
-  std::string kind() override { return "Base"; }
-  void f(){}
-  Base b{};
+  explicit Derived(const Base& b):Base{int(b)}{}
+  std::string to_string() override { return "Derived{i:"s + std::to_string(i) + '}'; }
+  void f() { ++i; }
+  Base b{1};
 };
 //------------------------------------------------------------------------------
 enum class Day { mon, tue, wed, thu, fri, sat, sun };
@@ -81,14 +83,14 @@ Day& operator++(Day& d) {
                              : static_cast<Day>(static_cast<int>(d)+1);
 }
 std::string to_string(const Day& d) {
-  return "sun mon tue wed thu fri sat"s.substr(4*int(d), 3);
+  return "mon tue wed thu fri sat sun"s.substr(4*static_cast<int>(d), 3);
 }
 
 void slide7_2() { // `static_cast<T>(expr)`
   FUNC;
 
   // Basic construction/conversion
-  Base{42};
+  Base b{42};
   Derived d{};
   auto bp1 = &d; // implicit upcast
   auto bp2 = &d.b;
@@ -102,16 +104,21 @@ void slide7_2() { // `static_cast<T>(expr)`
   auto i8 = int8_t{-42};
   auto flt = static_cast<float>(i8)/-5.0f;
   auto u8 = static_cast<uint8_t>(flt);
+  flt = 1.2e9f;
+  auto i_ptr = (int*)(&flt); // "Programmer knows better"
+  SHOW_EXPRESSION(*i_ptr);
 
   auto bp3 = static_cast<Base*>(&d); // Good: explicit upcast
-  [[maybe_unused]] auto dp3 = static_cast<Derived*>(bp2); // Bad: do not use static_cast to downcast
+  [[maybe_unused]]
+  auto dp3 = static_cast<Derived*>(bp2); // Bad: do not use static_cast to downcast
 
   SHOW_EXPRESSION(iPi);
-  SHOW_EXPRESSION(d.kind());
-  SHOW_EXPRESSION(bp1->kind());
-  SHOW_EXPRESSION(bp2->kind());
-  SHOW_EXPRESSION(bp3->kind());
-  //SHOW_EXPRESSION(dp3->kind()); // crashes
+
+  SHOW_EXPRESSION(d.to_string());
+  SHOW_EXPRESSION(bp1->to_string());
+  SHOW_EXPRESSION(bp2->to_string());
+  SHOW_EXPRESSION(bp3->to_string());
+  //SHOW_EXPRESSION(dp3->to_string()); // crashes
   SHOW_EXPRESSION(int(i8));
   SHOW_EXPRESSION(flt);
   SHOW_EXPRESSION(int(u8));
