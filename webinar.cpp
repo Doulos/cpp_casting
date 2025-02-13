@@ -61,21 +61,41 @@ void slide7_1() { // `T(expr)` explicit conversion
   std::cout << "scaled=" << scaled << '\n';
 }
 
+// Background
 struct Base {
   Base() = default;
   explicit Base(int i):i{i}{}
   explicit operator int() const { return i; }
-  virtual std::string to_string() { return "Base{i:"s + std::to_string(i) + '}'; }
+  virtual explicit operator std::string() const
+    { return "Base:"s + std::to_string(i); }
   virtual ~Base() = default;
   protected: int i{0};
 };
 struct Derived : Base {
   Derived() = default;
   explicit Derived(const Base& b):Base{int(b)}{}
-  std::string to_string() override { return "Derived{i:"s + std::to_string(i) + '}'; }
-  void f() { ++i; }
-  Base b{1};
+  explicit operator std::string() const override
+    { return "Derived:"s + std::to_string(i); }
+  void inc10() { i += int(b); }
+  Base b{10};
 };
+
+// Down-casting
+void downcast1(Base* b) { // very unsafe
+  static_cast<Derived*>(b)->inc10();
+}
+void downcast2(Base* b) { // possibly unsafe
+  if ( int(b) >= 10 ) { //< valid assumption?
+    static_cast<Derived&>(*b).inc10();
+  }
+}
+void downcast3(Base* b) { // safe
+  if ( auto d = dynamic_cast<Derived*>(b); d != nullptr )
+    d->inc10();
+  else
+    printf("Not a Derived!\n");
+}
+
 //------------------------------------------------------------------------------
 enum class Day { mon, tue, wed, thu, fri, sat, sun };
 Day& operator++(Day& d) {
@@ -92,8 +112,9 @@ void slide7_2() { // `static_cast<T>(expr)`
   // Basic construction/conversion
   Base b{42};
   Derived d{};
+  d.inc10();
   auto bp1 = &d; // implicit upcast
-  auto bp2 = &d.b;
+  auto bp2 = &d.b; // implicit downcast
 
   auto iPi = static_cast<int>(2*atan(1.0));
   auto day = Day::tue;
@@ -109,15 +130,19 @@ void slide7_2() { // `static_cast<T>(expr)`
   SHOW_EXPRESSION(*i_ptr);
 
   auto bp3 = static_cast<Base*>(&d); // Good: explicit upcast
-  [[maybe_unused]]
   auto dp3 = static_cast<Derived*>(bp2); // Bad: do not use static_cast to downcast
+  dp3->inc10(); // crashes if compiler fails discernment
+
+  downcast1(&b); // likely crash
+  downcast2(&b); // likely crash
+  downcast3(&b); // should work
 
   SHOW_EXPRESSION(iPi);
 
-  SHOW_EXPRESSION(d.to_string());
-  SHOW_EXPRESSION(bp1->to_string());
-  SHOW_EXPRESSION(bp2->to_string());
-  SHOW_EXPRESSION(bp3->to_string());
+  SHOW_EXPRESSION(std::string(d));
+  SHOW_EXPRESSION(std::string(*bp1));
+  SHOW_EXPRESSION(std::string(*bp2));
+  SHOW_EXPRESSION(std::string(*bp3));
   //SHOW_EXPRESSION(dp3->to_string()); // crashes
   SHOW_EXPRESSION(int(i8));
   SHOW_EXPRESSION(flt);
